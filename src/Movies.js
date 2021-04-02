@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import InputFieldSet from './InputFieldSet';
 import MovieItem from './MovieItem';
 import db from './firebase/db';
 
@@ -8,9 +7,7 @@ export default function Movies() {
   const [categories, setCategories] = useState([]);
 
   const [fieldValues, setFieldValues] = useState({
-    highestBidderName: '',
-    highestBid: '',
-    title: '',
+    hungarian: 'nonehungarian',
   });
 
   const processMoviesSnapshot = (snapshot) => {
@@ -27,50 +24,107 @@ export default function Movies() {
 
       items.push(docItem);
     });
-    console.log(categories);
-    setCategories(categories);
     setMovies(items);
   };
 
+  const processCategorySnapshot = (snapshot) => {
+    const categories = [];
+
+    snapshot.docs.forEach((item) => {
+      const docItem = item.data();
+
+      if (!categories.includes(docItem.category)) {
+        categories.push(docItem.category);
+      }
+    });
+    setCategories(categories);
+  };
+
   useEffect(() => {
-    const unsubscribe = db
-      .collection('movies')
-      .onSnapshot(processMoviesSnapshot);
-    return () => {
-      unsubscribe();
-    };
+    db.collection('movies').onSnapshot(processMoviesSnapshot);
+
+    db.collection('movies').onSnapshot(processCategorySnapshot);
   }, []);
+
+  function handleCategoryChange(e) {
+    const value = e.target.value;
+    const ref = db.collection('movies');
+    if (value !== '') {
+      ref.where('category', '==', value).get().then(processMoviesSnapshot);
+    } else {
+      ref.get().then(processMoviesSnapshot);
+    }
+  }
+
+  function handleTitleSearchInputChange(e) {
+    const value = e.target.value;
+
+    db.collection('movies')
+      .where('title', '>=', value)
+      .where('title', '<=', value + '\uf8ff')
+      .get()
+      .then(processMoviesSnapshot);
+  }
+
+  function handleAgeCheckboxChange(e) {
+    const checked = e.target.checked;
+
+    if (checked) {
+      db.collection('movies')
+        .where('age', '>=', 18)
+        .get()
+        .then(processMoviesSnapshot);
+    } else {
+      db.collection('movies').get().then(processMoviesSnapshot);
+    }
+  }
+
+  function handleDubbedRadioChange(e) {
+    const value = e.target.value;
+    setFieldValues({ ...fieldValues, hungarian: value });
+
+    if (value === 'hungarian') {
+      db.collection('movies')
+        .where('hungarian', '==', true)
+        .get()
+        .then(processMoviesSnapshot);
+    } else {
+      db.collection('movies').get().then(processMoviesSnapshot);
+    }
+  }
 
   return (
     <div className="container">
       <div className="row">
         <h1>Filmkatalógus</h1>
-        <div className="d-flex mt-3">
-          {/* <InputFieldSet
-        reference={references['highestBid']}
-        name="highestBid"
-        labelText="Tét"
-        type="number"
-        errors={errors}
-        fieldValues={fieldValues}
-        handleInputBlur={handleInputBlur}
-        handleInputChange={handleInputChange}
-        required={true}
-        /> */}
-          <select
-            id="auctionSelector"
-            className={'form-select'}
-            value={fieldValues.category}
-            // onChange={handleAuctionChange}
-            // ref={references['category']}
-          >
-            <option value={''}>Válassz!</option>
-            {categories.map((item) => (
-              <option key={item.category} value={item.category}>
-                {item.category}
-              </option>
-            ))}
-          </select>
+        <div className="row">
+          <label htmlFor="titleSearch" className="form-label m-2">
+            Filmcím keresés
+          </label>
+          <div className="col-6">
+            <input
+              type="text"
+              className="form-control"
+              id="titleSearch"
+              name="titleSearch"
+              onChange={handleTitleSearchInputChange}
+            />
+          </div>
+          <div className="col-6 ">
+            <select
+              id="auctionSelector"
+              className={'form-select'}
+              value={fieldValues.category}
+              onChange={handleCategoryChange}
+            >
+              <option value={''}>Válassz!</option>
+              {categories.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="d-flex my-3">
           <div className="pl-3 custom-control custom-checkbox ">
@@ -78,11 +132,8 @@ export default function Movies() {
               className="custom-control-input me-3"
               name="checkbox1"
               type="checkbox"
-              //checked={fieldValues.checkbox1}
               id="invalidCheck"
-              // ref={references['checkbox1']}
-              // onChange={handleCheckboxChange}
-              required
+              onChange={handleAgeCheckboxChange}
             />
             <label className="custom-control-label me-3" htmlFor="invalidCheck">
               18 éven felülieknek
@@ -94,11 +145,10 @@ export default function Movies() {
               className="custom-control-input me-3"
               name="radioButtons"
               type="radio"
-              //checked={fieldValues.checkbox1}
               id="hungarian"
-              // ref={references['checkbox1']}
-              // onChange={handleCheckboxChange}
-              required
+              onChange={handleDubbedRadioChange}
+              checked={fieldValues.hungarian === 'hungarian'}
+              value="hungarian"
             />
             <label className="custom-control-label me-3" htmlFor="hungarian">
               Magyar szinkron
@@ -109,11 +159,10 @@ export default function Movies() {
               className="custom-control-input me-3"
               name="radioButtons"
               type="radio"
-              //checked={fieldValues.checkbox1}
               id="nonehungarian"
-              // ref={references['checkbox1']}
-              // onChange={handleCheckboxChange}
-              required
+              onChange={handleDubbedRadioChange}
+              checked={fieldValues.hungarian === 'nonehungarian'}
+              value="nonehungarian"
             />
             <label className="custom-control-label" htmlFor="nonehungarian">
               Összes film, bármilyen szinkronnal
