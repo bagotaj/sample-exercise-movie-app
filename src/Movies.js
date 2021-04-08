@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 
 import MovieItem from './MovieItem';
-import db from './firebase/db';
 import StatisticTable from './StatisticTable';
+
+import db from './firebase/db';
 
 export default function Movies() {
   const [movies, setMovies] = useState([]);
