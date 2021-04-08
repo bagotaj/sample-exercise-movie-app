@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
 import MovieItem from './MovieItem';
 import db from './firebase/db';
 
@@ -96,7 +98,7 @@ export default function Movies() {
   return (
     <div className="container">
       <div className="row">
-        <h1>Filmkatalógus</h1>
+        <h1 className="mt-3">Filmkatalógus</h1>
         <div className="row">
           <label htmlFor="titleSearch" className="form-label m-2">
             Filmcím keresés
@@ -199,6 +201,9 @@ export default function Movies() {
             ))}
           </tbody>
         </table>
+        <Link to="/movie/new">
+          <button className="btn btn-primary mb-5">Új film regisztráció</button>
+        </Link>
       </div>
     </div>
   );

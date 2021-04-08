@@ -58,7 +58,7 @@ export default function NewMovie() {
   }
 
   const errorTypes = {
-    required: 'Hiányzó érték',
+    required: 'Hiányzó érték.',
     oscars: 'Nem hiszem el, hogy minusz darab Oscart kapott! :-D',
   };
 
@@ -129,38 +129,59 @@ export default function NewMovie() {
     validateField(name);
   }
 
+  async function movieTitleChecker(movieTitle) {
+    const snapshot = await db
+      .collection('movies')
+      .where('title', '==', movieTitle)
+      .get();
+
+    return snapshot.docs.length !== 0;
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
 
     const isValid = isFormValid();
 
-    console.log(fieldValues);
-
     if (isValid) {
-      db.collection('movies')
-        .add({
-          title: fieldValues.title,
-          category: fieldValues.category,
-          oscars: parseInt(fieldValues.oscars),
-          hungarian: fieldValues.hungarian,
-          age: parseInt(fieldValues.age),
-        })
-        .then((docRef) => {
-          setFieldValues({
-            title: '',
-            category: '',
-            oscars: '',
-            hungarian: false,
-            age: '',
+      let movieTitle = fieldValues.title;
+
+      if (movieTitleChecker(movieTitle)) {
+        setFormAlertText(
+          'Sikertelen mentés. Ilyen címmel már regisztrálva lett egy film.'
+        );
+        setFormAlertType('danger');
+      } else {
+        db.collection('movies')
+          .add({
+            title: fieldValues.title,
+            category: fieldValues.category,
+            oscars: parseInt(fieldValues.oscars),
+            hungarian: fieldValues.hungarian,
+            age: parseInt(fieldValues.age),
+          })
+          .then((docRef) => {
+            setFieldValues({
+              title: '',
+              category: '',
+              oscars: '',
+              hungarian: false,
+              age: '',
+            });
+            setFormAlertText('Sikeres mentés.');
+            setFormAlertType('success');
           });
-        });
+      }
+    } else {
+      setFormAlertText('Sikertelen mentés.');
+      setFormAlertType('danger');
     }
   }
 
   return (
     <div className="container">
       <div className="row">
-        <h1>Új film regisztráció</h1>
+        <h1 className="mt-3">Új film regisztráció</h1>
         <form
           onSubmit={handleSubmit}
           noValidate={true}
@@ -225,7 +246,7 @@ export default function NewMovie() {
               name="hungarian"
               type="checkbox"
               id="invalidCheck"
-              //checked={fieldValues.hungarian}
+              checked={fieldValues.hungarian}
               onChange={handleInputChange}
             />
             <label className="custom-control-label me-3" htmlFor="invalidCheck">
@@ -242,7 +263,7 @@ export default function NewMovie() {
                 type="radio"
                 id="age12"
                 value="12"
-                // checked={fieldValues.age === '12'}
+                checked={fieldValues.age === '12'}
                 onChange={handleInputChange}
               />
               <label className="custom-control-label me-3" htmlFor="age12">
@@ -257,7 +278,7 @@ export default function NewMovie() {
                 type="radio"
                 id="age16"
                 value="16"
-                // checked={fieldValues.age === '16'}
+                checked={fieldValues.age === '16'}
                 onChange={handleInputChange}
               />
               <label className="custom-control-label me-3" htmlFor="age16">
@@ -272,7 +293,7 @@ export default function NewMovie() {
                 type="radio"
                 id="age18"
                 value="18"
-                // checked={fieldValues.age === '18'}
+                checked={fieldValues.age === '18'}
                 onChange={handleInputChange}
               />
               <label className="custom-control-label me-3" htmlFor="age18">
@@ -285,6 +306,11 @@ export default function NewMovie() {
             Küldés
           </button>
         </form>
+        {formAlertText && (
+          <div className={`alert mt-3 alert-${formAlertType}`} role="alert">
+            {formAlertText}
+          </div>
+        )}
       </div>
     </div>
   );
