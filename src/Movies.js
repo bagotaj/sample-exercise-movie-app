@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import MovieItem from './MovieItem';
 import db from './firebase/db';
+import StatisticTable from './StatisticTable';
 
 export default function Movies() {
   const [movies, setMovies] = useState([]);
@@ -204,6 +205,7 @@ export default function Movies() {
         <Link to="/movie/new">
           <button className="btn btn-primary mb-5">Új film regisztráció</button>
         </Link>
+        <StatisticTable movies={movies} categories={categories} />
       </div>
     </div>
   );
