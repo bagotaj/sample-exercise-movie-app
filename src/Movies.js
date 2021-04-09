@@ -235,7 +235,7 @@ export default function Movies() {
         <Link to="/movie/new">
           <button className="btn btn-primary mb-5">Új film regisztráció</button>
         </Link>
-        <StatisticTable movies={movies} categories={categories} />
+        <StatisticTable movies={movies} />
         <DeleteModal
           handleDeleteConfirm={handleDeleteConfirm}
           deleteModalRef={deleteModalRef}

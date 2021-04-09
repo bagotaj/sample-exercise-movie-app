@@ -6,8 +6,6 @@ import db from './firebase/db';
 export default function EditMovie() {
   const { id } = useParams();
 
-  console.log(id);
-
   const [fieldValues, setFieldValues] = useState({
     title: '',
     category: '',
@@ -149,36 +147,28 @@ export default function EditMovie() {
     const isValid = isFormValid();
 
     if (isValid) {
-      let movieTitle = fieldValues.title;
-
-      if (movieTitleChecker(movieTitle)) {
-        setFormAlertText(
-          'Sikertelen mentés. Ilyen címmel már regisztrálva lett egy film.'
-        );
-        setFormAlertType('danger');
-      } else {
-        db.collection('movies')
-          .add({
-            title: fieldValues.title,
-            category: fieldValues.category,
-            oscars: parseInt(fieldValues.oscars),
-            hungarian: fieldValues.hungarian,
-            age: parseInt(fieldValues.age),
-          })
-          .then((docRef) => {
-            setFieldValues({
-              title: '',
-              category: '',
-              oscars: '',
-              hungarian: false,
-              age: '',
-            });
-            setFormAlertText('Sikeres mentés.');
-            setFormAlertType('success');
+      db.collection('movies')
+        .doc(id)
+        .update({
+          title: fieldValues.title,
+          category: fieldValues.category,
+          oscars: parseInt(fieldValues.oscars),
+          hungarian: fieldValues.hungarian,
+          age: parseInt(fieldValues.age),
+        })
+        .then((docRef) => {
+          setFieldValues({
+            title: '',
+            category: '',
+            oscars: '',
+            hungarian: false,
+            age: '',
           });
-      }
+          setFormAlertText('Sikeres módosítás.');
+          setFormAlertType('success');
+        });
     } else {
-      setFormAlertText('Sikertelen mentés.');
+      setFormAlertText('Sikertelen módosítás.');
       setFormAlertType('danger');
     }
   }
@@ -192,7 +182,7 @@ export default function EditMovie() {
 
         setFieldValues(data);
       });
-  }, [id]);
+  }, []);
 
   return (
     <div className="container">
@@ -279,7 +269,7 @@ export default function EditMovie() {
                 type="radio"
                 id="age12"
                 value="12"
-                checked={fieldValues.age === '12'}
+                checked={parseInt(fieldValues.age) === 12}
                 onChange={handleInputChange}
               />
               <label className="custom-control-label me-3" htmlFor="age12">
@@ -294,7 +284,7 @@ export default function EditMovie() {
                 type="radio"
                 id="age16"
                 value="16"
-                checked={fieldValues.age === '16'}
+                checked={parseInt(fieldValues.age) === 16}
                 onChange={handleInputChange}
               />
               <label className="custom-control-label me-3" htmlFor="age16">
@@ -309,7 +299,7 @@ export default function EditMovie() {
                 type="radio"
                 id="age18"
                 value="18"
-                checked={fieldValues.age === '18'}
+                checked={parseInt(fieldValues.age) === 18}
                 onChange={handleInputChange}
               />
               <label className="custom-control-label me-3" htmlFor="age18">
@@ -319,7 +309,7 @@ export default function EditMovie() {
           </div>
 
           <button type="submit" className="btn btn-primary mt-3">
-            Küldés
+            Mentés
           </button>
         </form>
         {formAlertText && (

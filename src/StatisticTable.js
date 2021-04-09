@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
 
 export default function StatisticTable(props) {
-  const { movies, categories } = props;
+  const { movies } = props;
 
   const [numberOfCategory, setNumberOfCategory] = useState({});
   const [percentOfCategory, setPercentOfCategory] = useState({});
+  const [generalStatistics, setGeneralStatistics] = useState({
+    numberOfMovies: 0,
+    adultMovies: 0,
+    mostOscars: '',
+    hungarianDubbedRatio: 0,
+  });
 
   useEffect(() => {
     filterCategory();
+    makeGeneralStatistics();
   }, [movies]);
 
   async function filterCategory() {
@@ -40,6 +47,36 @@ export default function StatisticTable(props) {
     setPercentOfCategory(percents);
   }
 
+  function makeGeneralStatistics() {
+    let numberOfMovies = movies.length;
+    let adultMovies = 0;
+    let mostOscarMovie = movies[0];
+    let hungarianDubbeds = 0;
+
+    movies.forEach((movie) => {
+      if (movie.age === 18) {
+        adultMovies++;
+      }
+
+      if (mostOscarMovie.oscars < movie.oscars) {
+        mostOscarMovie = movie;
+      }
+
+      if (movie.hungarian) {
+        hungarianDubbeds++;
+      }
+    });
+
+    setGeneralStatistics({
+      numberOfMovies: numberOfMovies,
+      adultMovies: adultMovies,
+      mostOscars: mostOscarMovie?.title,
+      hungarianDubbedRatio: Math.round(
+        (hungarianDubbeds * 100) / numberOfMovies
+      ),
+    });
+  }
+
   return (
     <>
       <h2>Általános statisztika</h2>
@@ -54,10 +91,10 @@ export default function StatisticTable(props) {
         </thead>
         <tbody>
           <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>{generalStatistics.numberOfMovies}</td>
+            <td>{generalStatistics.adultMovies}</td>
+            <td>{generalStatistics.mostOscars}</td>
+            <td>{generalStatistics.hungarianDubbedRatio + ' %'}</td>
           </tr>
         </tbody>
       </table>
