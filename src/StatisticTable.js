@@ -8,13 +8,13 @@ export default function StatisticTable(props) {
 
   useEffect(() => {
     filterCategory();
-  }, []);
+  }, [movies]);
 
   async function filterCategory() {
     let numbers = {};
 
     movies.forEach((movie) =>
-      movie.category in numbers
+      numbers[movie.category]
         ? (numbers[movie.category] = numbers[movie.category] + 1)
         : (numbers[movie.category] = 1)
     );

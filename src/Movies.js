@@ -1,18 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Modal } from 'bootstrap';
 
 import MovieItem from './MovieItem';
 import StatisticTable from './StatisticTable';
+import DeleteModal from './DeleteModal';
 
 import db from './firebase/db';
 
 export default function Movies() {
   const [movies, setMovies] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [movieToBeDeleted, setMovieToBeDeleted] = useState(null);
 
   const [fieldValues, setFieldValues] = useState({
     hungarian: 'nonehungarian',
   });
+
+  const deleteModalRef = useRef();
 
   const processMoviesSnapshot = (snapshot) => {
     const items = [];
@@ -95,6 +100,20 @@ export default function Movies() {
     } else {
       db.collection('movies').get().then(processMoviesSnapshot);
     }
+  }
+
+  function handleDeleteConfirm() {
+    db.collection('movies').doc(movieToBeDeleted).delete();
+
+    const myModal = new Modal(deleteModalRef.current);
+    myModal.show();
+    myModal.hide();
+  }
+
+  function handleDeleteOnClick(e) {
+    let toBeDeleted = e.target.dataset.id;
+
+    setMovieToBeDeleted(toBeDeleted);
   }
 
   return (
@@ -196,8 +215,18 @@ export default function Movies() {
                   hungarian={item.hungarian}
                 />
                 <td>
-                  <button className="btn btn-primary me-3">Módosítás</button>
-                  <button className="btn btn-danger">Törlés</button>
+                  <Link to={`/movie/edit/${item.docId}`}>
+                    <button className="btn btn-primary me-3">Módosítás</button>
+                  </Link>
+                  <button
+                    className="btn btn-danger"
+                    data-id={item.docId}
+                    data-bs-target="#myModal"
+                    data-bs-toggle="modal"
+                    onClick={handleDeleteOnClick}
+                  >
+                    Törlés
+                  </button>
                 </td>
               </tr>
             ))}
@@ -207,6 +236,10 @@ export default function Movies() {
           <button className="btn btn-primary mb-5">Új film regisztráció</button>
         </Link>
         <StatisticTable movies={movies} categories={categories} />
+        <DeleteModal
+          handleDeleteConfirm={handleDeleteConfirm}
+          deleteModalRef={deleteModalRef}
+        />
       </div>
     </div>
   );
